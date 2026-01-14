@@ -55,13 +55,25 @@
     -webkit-font-smoothing: antialiased;
 }
 
+/* 페이지 전체 페이드인 애니메이션 */
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 body {
     font-family: var(--font-main);
     color: var(--text-black);
     background-color: var(--bg-white);
     line-height: 1.6;
     overflow-x: hidden;
-    animation: fadeIn 1.5s ease-out;
+    animation: fadeInPage 1.2s ease-out forwards;
+    /* 모든 페이지 진입 시 페이드인 */
 }
 
 body.fade-out {

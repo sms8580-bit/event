@@ -67,15 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(section);
     });
 
-    // 5. 페이지 페이드아웃 및 캐시 대응 (BFcache 해결)
+    // 페이지 진입 시점에 혹시 남아있을 수 있는 fade-out 클래스 강제 제거
+    document.body.classList.remove('fade-out');
+
+    // 5. 페이지 페이드아웃 및 캐시 대응 (뒤로가기 시 흰 화면 방지)
     const links = document.querySelectorAll('a');
     links.forEach(link => {
         link.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
-            // 외부 링크, 대상을 새 창으로 여는 링크, 혹은 현재 페이지 링크를 제외하고 작동
-            if (href && href.endsWith('.html') && !href.startsWith('http') && href !== currentPath && this.target !== '_blank') {
+            const target = this.getAttribute('target');
+
+            // 내부 .html 페이지 이동 시에만 페이드아웃 애니메이션 적용
+            if (href && href.endsWith('.html') && !href.startsWith('http') && href !== currentPath && target !== '_blank') {
                 e.preventDefault();
                 document.body.classList.add('fade-out');
+
+                // 애니메이션 시간(0.8초) 후 페이지 이동
                 setTimeout(() => {
                     window.location.href = href;
                 }, 800);
@@ -83,14 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 브라우저 뒤로가기/앞으로가기 시 캐시된 페이지가 표시될 때 fade-out 클래스 제거
+    // 브라우저 뒤로가기/앞으로가기 등으로 페이지가 다시 활성화될 때 (BFcache 대응)
     window.addEventListener('pageshow', (event) => {
-        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-            document.body.classList.remove('fade-out');
+        // 캐시된 상태에서 복원될 때 fade-out 클래스를 제거하고 페이드인 효과 보장
+        document.body.classList.remove('fade-out');
+
+        // 뒤로가기 시 페이드인 애니메이션이 다시 작동하도록 처리
+        if (event.persisted) {
+            document.body.style.animation = 'none';
+            void document.body.offsetWidth; // 리플로우 강제 발생
+            document.body.style.animation = 'fadeInPage 1.2s ease-out forwards';
         }
     });
 
-    // 6. 무한 슬라이더 아이템 복제
+    // 6. 무한 슬라이더 아이템 복제 (메인 페이지 전용)
     const sliderTrack = document.getElementById('sliderTrack');
     if (sliderTrack) {
         const items = sliderTrack.innerHTML;
